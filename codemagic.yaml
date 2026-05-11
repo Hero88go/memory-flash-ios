@@ -13,7 +13,7 @@
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
         BUNDLE_ID: "com.geekmagnetinc.memoryflash"
-        APP_APPLE_ID: "REPLACE_WITH_APPLE_ID"
+        APP_APPLE_ID: "6768209107"
       node: 22
       xcode: latest
     scripts:
