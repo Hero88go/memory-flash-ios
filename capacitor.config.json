@@ -1,0 +1,11 @@
+{
+  "appId": "com.geekmagnetinc.memoryflash",
+  "appName": "Memory Flash",
+  "webDir": "www",
+  "ios": {
+    "packageClassList": [
+      "AdMobPlugin",
+      "ICloudSyncPlugin"
+    ]
+  }
+}

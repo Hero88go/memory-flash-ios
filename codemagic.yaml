@@ -1,0 +1,52 @@
+workflows:
+  ios-workflow:
+    name: Memory Flash iOS Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Codemagic2
+    environment:
+      ios_signing:
+        provisioning_profiles:
+          - memory-flash-profile
+        certificates:
+          - memory-flash-distribution
+      vars:
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+        BUNDLE_ID: "com.geekmagnetinc.memoryflash"
+        # TODO: replace with actual Apple ID once App Store Connect entry exists
+        APP_APPLE_ID: "REPLACE_WITH_APPLE_ID"
+      node: 22
+      xcode: latest
+    scripts:
+      - name: npm install + cap sync
+        script: |
+          npm install
+          npx cap sync ios
+      - name: Set up signing from uploaded cert + profile
+        script: |
+          keychain initialize
+          keychain add-certificates
+          xcode-project use-profiles
+      - name: Auto-increment build number
+        script: |
+          cd "$CM_BUILD_DIR/ios/App"
+          LATEST=$(app-store-connect get-latest-app-store-build-number "$APP_APPLE_ID" 2>/dev/null || echo 0)
+          LATEST_TF=$(app-store-connect get-latest-testflight-build-number "$APP_APPLE_ID" 2>/dev/null || echo 0)
+          NEXT=$((LATEST > LATEST_TF ? LATEST : LATEST_TF))
+          NEXT=$((NEXT + 1))
+          echo "Setting build number to $NEXT"
+          agvtool new-version -all "$NEXT"
+      - name: Build ipa
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
