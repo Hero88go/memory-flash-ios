@@ -14,17 +14,17 @@ workflows:
       node: 22
       xcode: latest
     scripts:
-      - name: Fetch / create signing files
+      - name: Set up code signing
         script: |
+          keychain initialize
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
-          keychain initialize
           keychain add-certificates
           xcode-project use-profiles
       - name: npm install + cap sync
         script: |
-          npm install
+          npm install --no-optional
           npx cap sync ios
       - name: Auto-increment build number
         script: |

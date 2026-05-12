@@ -1,23 +1,22 @@
 {
-  "name": "memory-flash-ios",
-  "version": "1.0.0",
-  "description": "Memory Flash iOS app",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "Geek Magnet, Inc.",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "@capacitor-community/admob": "^8.0.0",
-    "@capacitor/cli": "^8.3.0",
-    "@capacitor/core": "^8.3.0",
-    "@capacitor/ios": "^8.3.0",
-    "cordova-plugin-purchase": "^13.12.1"
-  },
-  "devDependencies": {
-    "@capacitor/assets": "^3.0.5"
-  }
+    "name":  "memory-flash-ios",
+    "version":  "1.0.0",
+    "description":  "Memory Flash iOS app",
+    "main":  "index.js",
+    "scripts":  {
+                    "test":  "echo \"Error: no test specified\" \u0026\u0026 exit 1"
+                },
+    "keywords":  [
+
+                 ],
+    "author":  "Geek Magnet, Inc.",
+    "license":  "ISC",
+    "type":  "commonjs",
+    "dependencies":  {
+                         "@capacitor-community/admob":  "^8.0.0",
+                         "@capacitor/cli":  "^8.3.0",
+                         "@capacitor/core":  "^8.3.0",
+                         "@capacitor/ios":  "^8.3.0",
+                         "cordova-plugin-purchase":  "^13.12.1"
+                     }
 }
