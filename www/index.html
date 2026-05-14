@@ -1571,11 +1571,30 @@ updateTitleStats();
 checkURLParams();
 </script>
 <script>
-/* ═══════════════════ ADMOB: banner + interstitial (iOS only) ═══════════════════
-   Google test IDs by default — real ads will only show after you create real ad
-   units in apps.admob.com and paste their IDs into REAL_IDS below.
-   Interstitial shows every 3rd game-over (dispatchEvent('gameOver') from game logic). */
+/* ═══════════════ ADMOB: banner + interstitial + layout reserve ═══════════════
+   Real ads when REAL_IDS are filled, falls back to Google test IDs otherwise.
+   Sets --ad-banner-height CSS variable so layout containers shrink to make room.
+   Interstitial fires every Nth gameOver event. */
 (() => {
+  // CSS that reserves bottom space for the banner
+  const css = document.createElement('style');
+  css.textContent = `
+    :root { --ad-banner-height: 0px; }
+    .screen, #app, .app, #intro, #result, #gameOver,
+    #title-screen, #game-screen, #result-screen,
+    #screen-title, #screen-game, #screen-result, #screen-settings {
+      bottom: var(--ad-banner-height, 0px) !important;
+      transition: bottom 0.2s ease;
+    }
+    canvas#fx, canvas#canvas, canvas#inkCanvas, canvas#particles,
+    canvas#particle-canvas, canvas#lightning-canvas {
+      bottom: var(--ad-banner-height, 0px) !important;
+      height: calc(100% - var(--ad-banner-height, 0px)) !important;
+    }
+    body { padding-bottom: var(--ad-banner-height, 0px); box-sizing: border-box; transition: padding-bottom 0.2s ease; }
+  `;
+  document.head.appendChild(css);
+
   const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   const AdMob = isNative ? (window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) : null;
 
@@ -1593,16 +1612,19 @@ checkURLParams();
 
   let interstitialReady = false;
 
+  const setH = (px) => document.documentElement.style.setProperty('--ad-banner-height', px + 'px');
+
   async function showBanner() {
     if (!AdMob) return;
     try {
+      setH(0); // no reserve until banner actually loads
       await AdMob.showBanner({
         adId: BANNER_AD_ID,
         adSize: 'ADAPTIVE_BANNER',
         position: 'BOTTOM_CENTER',
         margin: 0,
       });
-    } catch (e) { console.error('AdMob showBanner:', e); }
+    } catch (e) { setH(0); console.error('AdMob showBanner:', e); }
   }
 
   async function prepareInterstitial() {
@@ -1610,7 +1632,7 @@ checkURLParams();
     try {
       await AdMob.prepareInterstitial({ adId: INTERSTITIAL_AD_ID });
       interstitialReady = true;
-    } catch (e) { interstitialReady = false; console.error('AdMob prepareInterstitial:', e); }
+    } catch (e) { interstitialReady = false; }
   }
 
   async function showInterstitial() {
@@ -1622,14 +1644,11 @@ checkURLParams();
       prepareInterstitial();
       return true;
     } catch (e) {
-      console.error('AdMob showInterstitial:', e);
-      interstitialReady = false;
-      prepareInterstitial();
+      interstitialReady = false; prepareInterstitial();
       return false;
     }
   }
 
-  // Triggered by the game when a run ends
   window.addEventListener('gameOver', () => {
     const next = (parseInt(localStorage.getItem('_ad_go_count')) || 0) + 1;
     localStorage.setItem('_ad_go_count', String(next));
@@ -1654,6 +1673,15 @@ checkURLParams();
         }
       } catch (e) { console.warn('AdMob UMP skipped:', e); }
 
+      // Reserve layout space only when banner actually renders.
+      try {
+        AdMob.addListener('bannerAdLoaded', () => setH(60));
+        AdMob.addListener('bannerAdFailedToLoad', () => setH(0));
+        AdMob.addListener('bannerAdSizeChanged', (size) => {
+          if (size && size.height) setH(size.height);
+        });
+      } catch (e) { console.warn('AdMob banner listeners:', e); }
+
       showBanner();
       prepareInterstitial();
     } catch (e) { console.error('AdMob init:', e); }
@@ -1666,5 +1694,6 @@ checkURLParams();
   }
 })();
 </script>
+
 </body>
 </html>
