@@ -1365,6 +1365,7 @@ function submitAnswer() {
 }
 
 function endGame(reason) {
+  window.dispatchEvent(new Event('gameOver'));
   S.phase = 'idle';
   if (S.timerRAF) cancelAnimationFrame(S.timerRAF);
 
@@ -1568,6 +1569,102 @@ document.addEventListener('keydown', (e) => {
 loadSettings();
 updateTitleStats();
 checkURLParams();
+</script>
+<script>
+/* ═══════════════════ ADMOB: banner + interstitial (iOS only) ═══════════════════
+   Google test IDs by default — real ads will only show after you create real ad
+   units in apps.admob.com and paste their IDs into REAL_IDS below.
+   Interstitial shows every 3rd game-over (dispatchEvent('gameOver') from game logic). */
+(() => {
+  const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  const AdMob = isNative ? (window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) : null;
+
+  const TEST_IDS = {
+    banner:       'ca-app-pub-3940256099942544/2934735716',
+    interstitial: 'ca-app-pub-3940256099942544/4411468910',
+  };
+  const REAL_IDS = {
+    banner:       '',
+    interstitial: '',
+  };
+  const BANNER_AD_ID       = REAL_IDS.banner       || TEST_IDS.banner;
+  const INTERSTITIAL_AD_ID = REAL_IDS.interstitial || TEST_IDS.interstitial;
+  const INTERSTITIAL_EVERY = 3;
+
+  let interstitialReady = false;
+
+  async function showBanner() {
+    if (!AdMob) return;
+    try {
+      await AdMob.showBanner({
+        adId: BANNER_AD_ID,
+        adSize: 'ADAPTIVE_BANNER',
+        position: 'BOTTOM_CENTER',
+        margin: 0,
+      });
+    } catch (e) { console.error('AdMob showBanner:', e); }
+  }
+
+  async function prepareInterstitial() {
+    if (!AdMob) return;
+    try {
+      await AdMob.prepareInterstitial({ adId: INTERSTITIAL_AD_ID });
+      interstitialReady = true;
+    } catch (e) { interstitialReady = false; console.error('AdMob prepareInterstitial:', e); }
+  }
+
+  async function showInterstitial() {
+    if (!AdMob) return false;
+    if (!interstitialReady) { prepareInterstitial(); return false; }
+    try {
+      await AdMob.showInterstitial();
+      interstitialReady = false;
+      prepareInterstitial();
+      return true;
+    } catch (e) {
+      console.error('AdMob showInterstitial:', e);
+      interstitialReady = false;
+      prepareInterstitial();
+      return false;
+    }
+  }
+
+  // Triggered by the game when a run ends
+  window.addEventListener('gameOver', () => {
+    const next = (parseInt(localStorage.getItem('_ad_go_count')) || 0) + 1;
+    localStorage.setItem('_ad_go_count', String(next));
+    if (next % INTERSTITIAL_EVERY === 0) showInterstitial();
+  });
+
+  async function init() {
+    if (!AdMob) return;
+    try {
+      try {
+        if (typeof AdMob.requestTrackingAuthorization === 'function') {
+          await AdMob.requestTrackingAuthorization();
+        }
+      } catch (e) { console.warn('AdMob ATT:', e); }
+
+      await AdMob.initialize({ initializeForTesting: false });
+
+      try {
+        const info = await AdMob.requestConsentInfo();
+        if (info && info.status === 'REQUIRED' && info.isConsentFormAvailable) {
+          await AdMob.showConsentForm();
+        }
+      } catch (e) { console.warn('AdMob UMP skipped:', e); }
+
+      showBanner();
+      prepareInterstitial();
+    } catch (e) { console.error('AdMob init:', e); }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
 </script>
 </body>
 </html>
