@@ -313,6 +313,7 @@ body::after {
   width: 100%;
   max-width: 500px;
   padding: 10px 16px;
+  margin-top: calc(env(safe-area-inset-top, 0px) + 8px);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -1150,18 +1151,7 @@ function clearGrid() {
 
 /* === GAME FLOW === */
 function startGame(mode) {
-  // Check daily already played
-  if (mode === 'daily') {
-    const todayKey = 'mf_daily_' + getTodayStr();
-    const prev = localStorage.getItem(todayKey);
-    if (prev) {
-      try {
-        const data = JSON.parse(prev);
-        showPreviousDaily(data);
-        return;
-      } catch {}
-    }
-  }
+  // Daily mode is now infinite — no once-per-day lock-out
 
   S.mode = mode;
   S.level = 1;
