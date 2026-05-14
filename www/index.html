@@ -321,6 +321,25 @@ body::after {
   font-size: 13px;
   flex-shrink: 0;
 }
+.back-to-menu-btn {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: calc(env(safe-area-inset-left, 0px) + 12px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--neon-cyan);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 6px 10px;
+  cursor: pointer;
+  z-index: 30;
+}
+.back-to-menu-btn:hover, .back-to-menu-btn:active {
+  background: var(--surface2);
+  border-color: var(--neon-cyan);
+}
 .hud-item { display: flex; align-items: center; gap: 6px; }
 .hud-label { color: var(--text-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
 .hud-val { font-weight: 700; }
@@ -773,6 +792,7 @@ html[data-cb="true"] .pal-swatch::after {
 
 <!-- GAME SCREEN -->
 <div id="screen-game" class="screen">
+  <button class="back-to-menu-btn" onclick="showScreen('title')" aria-label="Back to menu">&#8592; Menu</button>
   <div class="game-hud">
     <div class="hud-item">
       <span class="hud-label">LVL</span>
