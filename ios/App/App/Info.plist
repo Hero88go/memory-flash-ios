@@ -48,7 +48,7 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<string>ca-app-pub-3785960678886818~3032615765</string>
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Your data will be used to show you personalized ads from Google AdMob, which supports the developer. You can decline and still use the app with non-personalized ads.</string>
 	<key>SKAdNetworkItems</key>
